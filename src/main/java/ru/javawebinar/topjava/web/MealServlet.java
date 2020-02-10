@@ -1,10 +1,10 @@
 package ru.javawebinar.topjava.web;
 
-import org.slf4j.Logger;
+import ru.javawebinar.topjava.dao.MealDaoMap;
 import ru.javawebinar.topjava.model.Meal;
-import ru.javawebinar.topjava.model.MealTo;
 import ru.javawebinar.topjava.util.MealsUtil;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -12,33 +12,72 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.Month;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.slf4j.LoggerFactory.getLogger;
+import java.time.format.DateTimeFormatter;
 
 public class MealServlet extends HttpServlet {
-    private static final Logger log = getLogger(UserServlet.class);
+
+    private static final long serialVersionUID = 1L;
+    private static String INSERT_OR_EDIT = "/meal.jsp";
+    private static String LIST_MEALS = "/meals.jsp";
+    private MealDaoMap dao;
+    private final int CALORIES_PER_DAY = 2000;
+
+    private DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     @Override
+    public void init() throws ServletException {
+        super.init();
+        dao = new MealDaoMap();
+    }
+
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        log.debug("redirect to meals");
+        String forward;
+        String action = request.getParameter("action");
+        if (action == null)
+            action = "";
 
-        // Данные
-        List<MealTo> meals = Arrays.asList(
-                new MealTo(1, LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500, false),
-                new MealTo(2, LocalDateTime.of(2020, Month.JANUARY, 30, 13, 0), "Обед", 1000, false),
-                new MealTo(3, LocalDateTime.of(2020, Month.JANUARY, 30, 20, 0), "Ужин", 500, false),
-                new MealTo(4, LocalDateTime.of(2020, Month.JANUARY, 31, 0, 0), "Еда на граничное значение", 100, true),
-                new MealTo(5, LocalDateTime.of(2020, Month.JANUARY, 31, 10, 0), "Завтрак", 1000, true),
-                new MealTo(6, LocalDateTime.of(2020, Month.JANUARY, 31, 13, 0), "Обед", 500, true),
-                new MealTo(7, LocalDateTime.of(2020, Month.JANUARY, 31, 20, 0), "Ужин", 410, true)
-        );
+        switch (action) {
+            case ("delete"): {
+                int id = Integer.parseInt(request.getParameter("mealId"));
+                dao.delete(id);
+                response.sendRedirect(request.getContextPath() + "/meals");
+                return;
+            }
+            case ("insert"): {
+                forward = INSERT_OR_EDIT;
+                break;
+            }
+            case ("edit"): {
+                forward = INSERT_OR_EDIT;
+                int id = Integer.parseInt(request.getParameter("mealId"));
+                Meal meal = dao.get(id);
+                request.setAttribute("meal", meal);
+                break;
+            }
+            default: {
+                forward = LIST_MEALS;
+                request.setAttribute("meals", MealsUtil.filteredByStreams(dao.getAll(), LocalTime.MIN, LocalTime.MAX, CALORIES_PER_DAY));
+            }
+        }
+        RequestDispatcher view = request.getRequestDispatcher(forward);
+        view.forward(request, response);
+    }
 
-        request.setAttribute("meals", meals);
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        String description = request.getParameter("description");
+        int calories = Integer.parseInt(request.getParameter("calories"));
+        LocalDateTime dateTime = LocalDateTime.parse(request.getParameter("dateTime").replace("T", " "), dateTimeFormatter);
 
-        request.getRequestDispatcher("/meals_simple.jsp").forward(request, response);
-//        response.sendRedirect("meals.jsp");
+        String stringId = request.getParameter("id");
+        if (stringId == null || stringId.isEmpty()) {
+            dao.add(new Meal(0, dateTime, description, calories));
+        } else {
+            int id = Integer.parseInt(request.getParameter("id"));
+            dao.update(new Meal(id, dateTime, description, calories));
+        }
+        RequestDispatcher view = request.getRequestDispatcher(LIST_MEALS);
+        request.setAttribute("meals", MealsUtil.filteredByStreams(dao.getAll(), LocalTime.MIN, LocalTime.MAX, CALORIES_PER_DAY));
+        view.forward(request, response);
     }
 }
