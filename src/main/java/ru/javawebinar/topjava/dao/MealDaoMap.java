@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class MealDaoMap implements IDaoManager<Meal> {
     private ConcurrentMap<Integer, Meal> concurentMeals = new ConcurrentHashMap<>();
-    private volatile AtomicInteger counter = new AtomicInteger(0);
+    private AtomicInteger counter = new AtomicInteger(0);
 
     public MealDaoMap() {
         add(new Meal(1, LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500));

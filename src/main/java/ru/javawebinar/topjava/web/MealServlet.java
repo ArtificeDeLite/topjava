@@ -16,13 +16,12 @@ import java.time.format.DateTimeFormatter;
 
 public class MealServlet extends HttpServlet {
 
-    private static final long serialVersionUID = 1L;
     private static String INSERT_OR_EDIT = "/meal.jsp";
     private static String LIST_MEALS = "/meals.jsp";
     private MealDaoMap dao;
     private final int CALORIES_PER_DAY = 2000;
 
-    private DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     @Override
     public void init() throws ServletException {
@@ -63,7 +62,7 @@ public class MealServlet extends HttpServlet {
         view.forward(request, response);
     }
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
         request.setCharacterEncoding("UTF-8");
         String description = request.getParameter("description");
         int calories = Integer.parseInt(request.getParameter("calories"));
@@ -76,8 +75,6 @@ public class MealServlet extends HttpServlet {
             int id = Integer.parseInt(request.getParameter("id"));
             dao.update(new Meal(id, dateTime, description, calories));
         }
-        RequestDispatcher view = request.getRequestDispatcher(LIST_MEALS);
-        request.setAttribute("meals", MealsUtil.filteredByStreams(dao.getAll(), LocalTime.MIN, LocalTime.MAX, CALORIES_PER_DAY));
-        view.forward(request, response);
+        response.sendRedirect(request.getContextPath() + "/meals");
     }
 }
