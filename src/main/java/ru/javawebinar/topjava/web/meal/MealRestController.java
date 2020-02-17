@@ -31,10 +31,17 @@ public class MealRestController {
         return getTos(service.getAll(authUserId()), authUserCaloriesPerDay());
     }
 
-    public List<MealTo> getAll(LocalTime startTime, LocalTime endTime, LocalDate startDate, LocalDate endDate) {
+    public List<MealTo> getAllFiltered(LocalTime startTime, LocalTime endTime, LocalDate startDate, LocalDate endDate) {
         log.info("getAll");
-        return filteredByStreams(service.getAll(authUserId(), startDate, endDate), authUserCaloriesPerDay(),
-                meal -> DateTimeUtil.isBetweenInclusive(meal.getTime(), startTime, endTime));
+        if (startTime == null)
+            startTime = LocalTime.MIN;
+        if (endTime == null)
+            endTime = LocalTime.MAX;
+        if (startDate == null)
+            startDate = LocalDate.MIN;
+        if (endDate == null)
+            endDate = LocalDate.MAX;
+        return getFilteredTos(service.getAll(authUserId(), startDate, endDate), authUserCaloriesPerDay(), startTime, endTime);
     }
 
     public Meal get(int id) {

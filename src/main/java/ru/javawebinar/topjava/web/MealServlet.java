@@ -80,17 +80,17 @@ public class MealServlet extends HttpServlet {
                 break;
             case "filter":
                 log.info("filter");
-                LocalDate startDate = request.getParameter("startDate").isEmpty() ? LocalDate.MIN :
+                LocalDate startDate = request.getParameter("startDate").isEmpty() ? null :
                         LocalDate.parse(request.getParameter("startDate"));
-                LocalDate endDate = request.getParameter("endDate").isEmpty() ? LocalDate.MAX :
+                LocalDate endDate = request.getParameter("endDate").isEmpty() ? null :
                         LocalDate.parse(request.getParameter("endDate"));
-                LocalTime startTime = request.getParameter("startTime").isEmpty() ? LocalTime.MIN :
+                LocalTime startTime = request.getParameter("startTime").isEmpty() ? null :
                         LocalTime.parse(request.getParameter("startTime"));
-                LocalTime endTime = request.getParameter("endTime").isEmpty() ? LocalTime.MAX :
+                LocalTime endTime = request.getParameter("endTime").isEmpty() ? null :
                         LocalTime.parse(request.getParameter("endTime"));
 
                 request.setAttribute("meals",
-                        mealRestController.getAll(startTime, endTime, startDate, endDate));
+                        mealRestController.getAllFiltered(startTime, endTime, startDate, endDate));
                 request.getRequestDispatcher("/meals.jsp").forward(request, response);
                 break;
             case "all":

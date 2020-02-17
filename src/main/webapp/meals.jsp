@@ -27,15 +27,15 @@
         <table cellpadding="10px">
             <tr>
                 <td>From date:</td>
-                <td><input type="date" name="startDate"></td>
+                <td><input type="date" name="startDate" value =${param.startDate}></td>
                 <td>To date:</td>
-                <td><input type="date" name="endDate"></td>
+                <td><input type="date" name="endDate" value =${param.endDate}></td>
             </tr>
             <tr>
                 <td>From time:</td>
-                <td><input type="time" name="startTime"></td>
+                <td><input type="time" name="startTime" value =${param.startTime}></td>
                 <td>To time:</td>
-                <td><input type="time" name="endTime"></td>
+                <td><input type="time" name="endTime" value =${param.endTime}></td>
             </tr>
         </table>
         <button type="submit">Filter</button>

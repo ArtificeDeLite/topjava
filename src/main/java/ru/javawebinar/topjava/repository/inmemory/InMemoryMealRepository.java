@@ -9,6 +9,7 @@ import ru.javawebinar.topjava.util.MealsUtil;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,33 +32,37 @@ public class InMemoryMealRepository implements MealRepository {
             repository.put(meal.getId(), meal);
             return meal;
         }
-        // handle case: update, but not present in storage
 
-        if (repository.get(meal.getId()).getUserId().equals(userId)) {
-            meal.setUserId(userId);
-            return repository.computeIfPresent(meal.getId(), (id, oldMeal) -> meal);
-        } else
-            return null;
+        if (repository.containsKey(meal.getId())) {
+            if (repository.get(meal.getId()).getUserId().equals(userId)) {
+                meal.setUserId(userId);
+                return repository.computeIfPresent(meal.getId(), (id, oldMeal) -> meal);
+            }
+        }
+        return null;
     }
 
     @Override
     public boolean delete(int id, int userId) {
-        if (repository.get(id).getUserId().equals(userId))
-            return repository.remove(id) != null;
-        else
-            return false;
+        if (repository.containsKey(id)) {
+            if (repository.get(id).getUserId().equals(userId))
+                return repository.remove(id) != null;
+        }
+        return false;
     }
 
     @Override
     public Meal get(int id, int userId) {
-        if (repository.get(id).getUserId().equals(userId))
-            return repository.get(id);
-        else
-            return null;
+        if (repository.containsKey(id)) {
+            Meal meal = repository.get(id);
+            if (meal.getUserId().equals(userId))
+                return meal;
+        }
+        return null;
     }
 
     @Override
-    public Collection<Meal> getAll(int userId) {
+    public List<Meal> getAll(int userId) {
         return repository.values().stream()
                 .filter(meal -> meal.getUserId().equals(userId))
                 .sorted(Comparator.comparing(Meal::getDateTime).reversed())
@@ -65,9 +70,11 @@ public class InMemoryMealRepository implements MealRepository {
     }
 
     @Override
-    public Collection<Meal> getAll(int userId, LocalDate startDate, LocalDate endDate) {
-        return getAll(userId).stream()
+    public List<Meal> getAllFiltered(int userId, LocalDate startDate, LocalDate endDate) {
+        return repository.values().stream()
+                .filter(meal -> meal.getUserId().equals(userId))
                 .filter(meal -> DateTimeUtil.isBetweenInclusive(meal.getDate(), startDate, endDate))
+                .sorted(Comparator.comparing(Meal::getDateTime).reversed())
                 .collect(Collectors.toList());
     }
 }
