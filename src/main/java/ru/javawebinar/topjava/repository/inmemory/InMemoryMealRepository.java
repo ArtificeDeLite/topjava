@@ -7,17 +7,14 @@ import ru.javawebinar.topjava.util.DateTimeUtil;
 import ru.javawebinar.topjava.util.MealsUtil;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Repository
 public class InMemoryMealRepository implements MealRepository {
-    private Map<Integer, Meal> repository = new ConcurrentHashMap<>();
+    private Map<Integer, Map<Integer, Meal>> repository = new ConcurrentHashMap<>();
     private AtomicInteger counter = new AtomicInteger(0);
 
     {
@@ -26,56 +23,61 @@ public class InMemoryMealRepository implements MealRepository {
 
     @Override
     public Meal save(Meal meal, int userId) {
+        meal.setUserId(userId);
         if (meal.isNew()) {
             meal.setId(counter.incrementAndGet());
-            meal.setUserId(userId);
-            repository.put(meal.getId(), meal);
+            if (repository.containsKey(userId)) {
+                repository.get(userId).put(meal.getId(), meal);
+            } else {
+                repository.put(userId, new HashMap<Integer, Meal>() {{
+                    put(meal.getId(), meal);
+                }});
+            }
             return meal;
         }
 
-        if (repository.containsKey(meal.getId())) {
-            if (repository.get(meal.getId()).getUserId().equals(userId)) {
-                meal.setUserId(userId);
-                return repository.computeIfPresent(meal.getId(), (id, oldMeal) -> meal);
-            }
+        if (repository.containsKey(userId)) {
+            return repository.get(userId).computeIfPresent(meal.getId(), (id, oldMeal) -> meal);
         }
+
         return null;
     }
 
     @Override
     public boolean delete(int id, int userId) {
-        if (repository.containsKey(id)) {
-            if (repository.get(id).getUserId().equals(userId))
-                return repository.remove(id) != null;
+        if (repository.containsKey(userId) && repository.get(userId).containsKey(id)) {
+            return repository.get(userId).remove(id) != null;
         }
         return false;
     }
 
     @Override
     public Meal get(int id, int userId) {
-        if (repository.containsKey(id)) {
-            Meal meal = repository.get(id);
-            if (meal.getUserId().equals(userId))
-                return meal;
+        if (repository.containsKey(userId)) {
+            return repository.get(userId).computeIfPresent(id, (mId, meal) -> meal);
         }
         return null;
     }
 
     @Override
     public List<Meal> getAll(int userId) {
-        return repository.values().stream()
-                .filter(meal -> meal.getUserId().equals(userId))
-                .sorted(Comparator.comparing(Meal::getDateTime).reversed())
-                .collect(Collectors.toList());
+        if (repository.containsKey(userId)) {
+            return repository.get(userId).values().stream()
+                    .sorted(Comparator.comparing(Meal::getDateTime).reversed())
+                    .collect(Collectors.toList());
+        }
+        return new ArrayList<>();
     }
 
     @Override
     public List<Meal> getAllFiltered(int userId, LocalDate startDate, LocalDate endDate) {
-        return repository.values().stream()
-                .filter(meal -> meal.getUserId().equals(userId))
-                .filter(meal -> DateTimeUtil.isBetweenInclusive(meal.getDate(), startDate, endDate))
-                .sorted(Comparator.comparing(Meal::getDateTime).reversed())
-                .collect(Collectors.toList());
+        if (repository.containsKey(userId)) {
+            return repository.get(userId).values().stream()
+                    .filter(meal -> DateTimeUtil.isBetweenInclusive(meal.getDate(), startDate, endDate))
+                    .sorted(Comparator.comparing(Meal::getDateTime).reversed())
+                    .collect(Collectors.toList());
+        }
+        return new ArrayList<>();
     }
 }
 

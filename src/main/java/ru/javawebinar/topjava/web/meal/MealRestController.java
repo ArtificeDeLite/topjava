@@ -8,6 +8,7 @@ import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.service.MealService;
 import ru.javawebinar.topjava.to.MealTo;
 import ru.javawebinar.topjava.util.DateTimeUtil;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -41,7 +42,7 @@ public class MealRestController {
             startDate = LocalDate.MIN;
         if (endDate == null)
             endDate = LocalDate.MAX;
-        return getFilteredTos(service.getAll(authUserId(), startDate, endDate), authUserCaloriesPerDay(), startTime, endTime);
+        return getFilteredTos(service.getAllFiltered(authUserId(), startDate, endDate), authUserCaloriesPerDay(), startTime, endTime);
     }
 
     public Meal get(int id) {
