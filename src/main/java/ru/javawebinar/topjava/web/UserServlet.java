@@ -21,6 +21,8 @@ public class UserServlet extends HttpServlet {
 
         if (userId != null) {
             SecurityUtil.setAuthUserId(Integer.parseInt(userId));
+            response.sendRedirect(request.getContextPath() + "/meals");
+            return;
         }
 
         request.setAttribute("userId", SecurityUtil.authUserId());

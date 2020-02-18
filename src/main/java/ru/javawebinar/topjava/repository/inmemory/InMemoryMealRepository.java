@@ -26,58 +26,36 @@ public class InMemoryMealRepository implements MealRepository {
         meal.setUserId(userId);
         if (meal.isNew()) {
             meal.setId(counter.incrementAndGet());
-            if (repository.containsKey(userId)) {
-                repository.get(userId).put(meal.getId(), meal);
-            } else {
-                repository.put(userId, new HashMap<Integer, Meal>() {{
-                    put(meal.getId(), meal);
-                }});
-            }
+            repository.computeIfAbsent(userId, k -> new HashMap<>()).put(meal.getId(), meal);
             return meal;
         }
 
-        if (repository.containsKey(userId)) {
-            return repository.get(userId).computeIfPresent(meal.getId(), (id, oldMeal) -> meal);
-        }
-
-        return null;
+        return repository.getOrDefault(userId, null).computeIfPresent(meal.getId(), (id, oldMeal) -> meal);
     }
 
     @Override
     public boolean delete(int id, int userId) {
-        if (repository.containsKey(userId) && repository.get(userId).containsKey(id)) {
-            return repository.get(userId).remove(id) != null;
-        }
-        return false;
+        return repository.getOrDefault(userId, new HashMap<>()).remove(id) != null;
     }
 
     @Override
     public Meal get(int id, int userId) {
-        if (repository.containsKey(userId)) {
-            return repository.get(userId).computeIfPresent(id, (mId, meal) -> meal);
-        }
-        return null;
+        return repository.getOrDefault(userId, new HashMap<>()).computeIfPresent(id, (mId, meal) -> meal);
     }
 
     @Override
     public List<Meal> getAll(int userId) {
-        if (repository.containsKey(userId)) {
-            return repository.get(userId).values().stream()
-                    .sorted(Comparator.comparing(Meal::getDateTime).reversed())
-                    .collect(Collectors.toList());
-        }
-        return new ArrayList<>();
+        return getAllFiltered(userId, LocalDate.MIN, LocalDate.MAX);
     }
 
     @Override
     public List<Meal> getAllFiltered(int userId, LocalDate startDate, LocalDate endDate) {
-        if (repository.containsKey(userId)) {
-            return repository.get(userId).values().stream()
-                    .filter(meal -> DateTimeUtil.isBetweenInclusive(meal.getDate(), startDate, endDate))
-                    .sorted(Comparator.comparing(Meal::getDateTime).reversed())
-                    .collect(Collectors.toList());
-        }
-        return new ArrayList<>();
+
+        return repository.getOrDefault(userId, new HashMap<>()).values()
+                .stream()
+                .filter(meal -> DateTimeUtil.isBetweenInclusive(meal.getDate(), startDate, endDate))
+                .sorted(Comparator.comparing(Meal::getDateTime).reversed())
+                .collect(Collectors.toList());
     }
 }
 
