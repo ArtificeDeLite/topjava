@@ -19,18 +19,7 @@ import java.util.List;
 @Repository
 public class JdbcMealRepository implements MealRepository {
 
-    private static final BeanPropertyRowMapper<Meal> ROW_MAPPER = new BeanPropertyRowMapper<Meal>() {
-
-        @Override
-        public Meal mapRow(ResultSet rs, int rowNum) throws SQLException {
-            Meal meal = new Meal();
-            meal.setId(rs.getInt("id"));
-            meal.setDateTime(rs.getTimestamp("datetime").toLocalDateTime());
-            meal.setDescription(rs.getString("description"));
-            meal.setCalories(rs.getInt("calories"));
-            return meal;
-        }
-    };
+    private static final BeanPropertyRowMapper<Meal> ROW_MAPPER = BeanPropertyRowMapper.newInstance(Meal.class);
 
     private final JdbcTemplate jdbcTemplate;
 

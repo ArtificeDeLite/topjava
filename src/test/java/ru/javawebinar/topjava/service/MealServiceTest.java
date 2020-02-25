@@ -38,8 +38,8 @@ public class MealServiceTest {
 
     @Test
     public void get() {
-        Meal meal = service.get(MEAL_01_ID, USER_ID);
-        assertMatch(meal, MEAL_01);
+        Meal meal = service.get(USER_MEAL_01_ID, USER_ID);
+        assertMatch(meal, USER_MEAL_01);
     }
 
     @Test(expected = NotFoundException.class)
@@ -49,18 +49,18 @@ public class MealServiceTest {
 
     @Test(expected = NotFoundException.class)
     public void getNotOwn() throws Exception {
-        service.get(MEAL_01_ID, ADMIN_ID);
+        service.get(USER_MEAL_01_ID, ADMIN_ID);
     }
 
     @Test(expected = NotFoundException.class)
     public void delete() throws Exception {
-        service.delete(MEAL_01_ID, USER_ID);
-        service.get(MEAL_01_ID, USER_ID);
+        service.delete(USER_MEAL_01_ID, USER_ID);
+        service.get(USER_MEAL_01_ID, USER_ID);
     }
 
     @Test(expected = NotFoundException.class)
     public void deleteNotOwn() throws Exception {
-        service.delete(MEAL_01_ID, ADMIN_ID);
+        service.delete(USER_MEAL_01_ID, ADMIN_ID);
     }
 
     @Test(expected = NotFoundException.class)
@@ -71,20 +71,20 @@ public class MealServiceTest {
     @Test
     public void getBetweenHalfOpen() {
         List<Meal> all = service.getBetweenHalfOpen(LocalDate.of(2020, Month.JANUARY, 31), null, USER_ID);
-        assertMatch(all, MEAL_07, MEAL_06, MEAL_05, MEAL_04);
+        assertMatch(all, USER_MEAL_07, USER_MEAL_06, USER_MEAL_05, USER_MEAL_04);
     }
 
     @Test
     public void getAll() {
         List<Meal> all = service.getAll(ADMIN_ID);
-        assertMatch(all, MEAL_10, MEAL_09, MEAL_08);
+        assertMatch(all, ADMIN_MEAL_10, ADMIN_MEAL_09, ADMIN_MEAL_08);
     }
 
     @Test
     public void update() {
         Meal updated = getUpdated();
         service.update(updated, USER_ID);
-        assertMatch(service.get(MEAL_01_ID, USER_ID), updated);
+        assertMatch(service.get(USER_MEAL_01_ID, USER_ID), updated);
     }
 
     @Test(expected = NotFoundException.class)
