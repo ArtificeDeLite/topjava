@@ -2,10 +2,9 @@ package ru.javawebinar.topjava.service;
 
 import org.junit.*;
 import org.junit.rules.ExpectedException;
-import org.junit.rules.TestRule;
+import org.junit.rules.Stopwatch;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
-import org.junit.runners.model.Statement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +18,7 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static ru.javawebinar.topjava.MealTestData.*;
 import static ru.javawebinar.topjava.UserTestData.ADMIN_ID;
@@ -38,62 +37,69 @@ public class MealServiceTest {
     @Autowired
     private MealRepository repository;
 
-    private static Map<String, Long> testsDuration = new HashMap<>();
-    public static List<String> allTestDuration = new ArrayList<>();
+    private static StringBuilder allTestInfo = new StringBuilder("\n\n");
     private static final Logger log = LoggerFactory.getLogger(MealServiceTest.class);
 
-    @ClassRule
-    public static TestRule classRule = new TestRule() {
+    private static void logInfo(Description description, String status, long nanos) {
+        String testName = description.getMethodName();
 
-        @Override
-        public Statement apply(Statement base, Description description) {
-            return new Statement() {
-                @Override
-                public void evaluate() throws Throwable {
-                    try {
-                        base.evaluate();
-                    } finally {
-                        afterClass();
-                    }
-                }
-            };
+        final String ANSI_RESET = "\u001B[0m";
+        final String ANSI_RED = "\u001B[31m";
+        final String ANSI_GREEN = "\u001B[32m";
+        final String ANSI_YELLOW = "\u001B[33m";
+
+        String textColor;
+        switch (status) {
+            case "succeeded":
+                textColor = ANSI_GREEN;
+                break;
+            case "failed":
+                textColor = ANSI_RED;
+                break;
+            case "skipped":
+                textColor = ANSI_YELLOW;
+                break;
+            default:
+                textColor = ANSI_RESET;
         }
 
-        void afterClass() {
-            allTestDuration.forEach(log::debug);
-        }
-    };
+        log.info(String.format(textColor + "Test %s %s, spent %d microseconds" + ANSI_RESET,
+                testName, status, TimeUnit.NANOSECONDS.toMicros(nanos)));
+
+        allTestInfo.append("\t").append(textColor)
+                .append(String.format("Test %-30s  %s, spent %d microseconds",
+                        testName, status, TimeUnit.NANOSECONDS.toMicros(nanos)))
+                .append("\n").append(ANSI_RESET);
+    }
 
     @Rule
-    public TestRule rule = new TestRule() {
-
-        private long startTime;
+    public Stopwatch stopwatch = new Stopwatch() {
+        @Override
+        protected void succeeded(long nanos, Description description) {
+            logInfo(description, "succeeded", nanos);
+        }
 
         @Override
-        public Statement apply(Statement base, Description description) {
-            return new Statement() {
-                @Override
-                public void evaluate() throws Throwable {
-                    try {
-                        before();
-                        base.evaluate();
-                    } finally {
-                        after(description);
-                    }
-                }
-            };
+        protected void failed(long nanos, Throwable e, Description description) {
+            logInfo(description, "failed", nanos);
         }
 
-        void before() {
-            startTime = new Date().getTime();
+        @Override
+        protected void skipped(long nanos, AssumptionViolatedException e, Description description) {
+            logInfo(description, "skipped", nanos);
         }
 
-        void after(Description description) {
-            long duration = new Date().getTime() - startTime;
-            allTestDuration.add(String.format("Test %s completed in %d ms.", description.getMethodName(), duration));
-            log.debug(String.format("Test %s completed in %d ms.", description.getMethodName(), duration));
+        @Override
+        protected void finished(long nanos, Description description) {
+            //logInfo(description, "finished", nanos);
         }
     };
+
+    @AfterClass
+    public static void afterClass() {
+        log.debug(allTestInfo.toString());
+
+    }
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();

@@ -30,12 +30,15 @@ public class JpaMealRepository implements MealRepository {
         } else {
             User user = em.getReference(User.class, userId);
             meal.setUser(user);
-            if (em.createNamedQuery(Meal.UPDATE)
+
+            if (em.createQuery("UPDATE Meal m " +
+                    "SET m.dateTime =: dateTime, m.calories =: calories, m.description =: description " +
+                    "WHERE m.user.id=:user_id AND m.id=:id")
                     .setParameter("calories", meal.getCalories())
                     .setParameter("dateTime", meal.getDateTime())
                     .setParameter("description", meal.getDescription())
                     .setParameter("id", meal.getId())
-                    .setParameter("user", user)
+                    .setParameter("user_id", userId)
                     .executeUpdate() != 0) {
                 return meal;
             }
@@ -46,19 +49,17 @@ public class JpaMealRepository implements MealRepository {
     @Override
     @Transactional
     public boolean delete(int id, int userId) {
-        User user = em.getReference(User.class, userId);
-        return em.createNamedQuery(Meal.DELETE)
+        return em.createQuery("DELETE FROM Meal m WHERE m.id=:id AND m.user.id=:user_id")
                 .setParameter("id", id)
-                .setParameter("user", user)
+                .setParameter("user_id", userId)
                 .executeUpdate() != 0;
     }
 
     @Override
     public Meal get(int id, int userId) {
-        User user = em.getReference(User.class, userId);
 
-        List<Meal> list = em.createNamedQuery(Meal.BY_USER, Meal.class)
-                .setParameter("user", user)
+        List<Meal> list = em.createQuery("SELECT m FROM Meal m WHERE m.user.id=:user_id AND m.id=:id", Meal.class)
+                .setParameter("user_id", userId)
                 .setParameter("id", id)
                 .getResultList();
         return DataAccessUtils.singleResult(list);
@@ -66,17 +67,17 @@ public class JpaMealRepository implements MealRepository {
 
     @Override
     public List<Meal> getAll(int userId) {
-        User user = em.getReference(User.class, userId);
-        return em.createNamedQuery(Meal.ALL_SORTED, Meal.class)
-                .setParameter("user", user)
+        return em.createQuery("SELECT m FROM Meal m WHERE m.user.id=:user_id ORDER BY m.dateTime DESC", Meal.class)
+                .setParameter("user_id", userId)
                 .getResultList();
     }
 
     @Override
     public List<Meal> getBetweenHalfOpen(LocalDateTime startDate, LocalDateTime endDate, int userId) {
-        User user = em.getReference(User.class, userId);
-        return em.createNamedQuery(Meal.ALL_FILTERED, Meal.class)
-                .setParameter("user", user)
+        return em.createQuery("SELECT m FROM Meal m " +
+                "WHERE m.user.id=:user_id AND m.dateTime >= :startDate AND m.dateTime < :endDate " +
+                "ORDER BY m.dateTime DESC", Meal.class)
+                .setParameter("user_id", userId)
                 .setParameter("startDate", startDate)
                 .setParameter("endDate", endDate)
                 .getResultList();
