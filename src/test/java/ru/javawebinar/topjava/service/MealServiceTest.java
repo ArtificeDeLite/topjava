@@ -37,68 +37,35 @@ public class MealServiceTest {
     @Autowired
     private MealRepository repository;
 
-    private static StringBuilder allTestInfo = new StringBuilder("\n\n");
+    private static final String ANSI_CYAN = "\u001B[36m";
+    private static final String ANSI_RESET = "\u001B[0m";
+
+    private static StringBuilder allTestInfo = new StringBuilder("\n\n").append(ANSI_CYAN);
     private static final Logger log = LoggerFactory.getLogger(MealServiceTest.class);
 
     private static void logInfo(Description description, String status, long nanos) {
         String testName = description.getMethodName();
 
-        final String ANSI_RESET = "\u001B[0m";
-        final String ANSI_RED = "\u001B[31m";
-        final String ANSI_GREEN = "\u001B[32m";
-        final String ANSI_YELLOW = "\u001B[33m";
-
-        String textColor;
-        switch (status) {
-            case "succeeded":
-                textColor = ANSI_GREEN;
-                break;
-            case "failed":
-                textColor = ANSI_RED;
-                break;
-            case "skipped":
-                textColor = ANSI_YELLOW;
-                break;
-            default:
-                textColor = ANSI_RESET;
-        }
-
-        log.info(String.format(textColor + "Test %s %s, spent %d microseconds" + ANSI_RESET,
+        log.info(String.format(ANSI_CYAN + "Test %s %s, spent %d microseconds" + ANSI_RESET,
                 testName, status, TimeUnit.NANOSECONDS.toMicros(nanos)));
 
-        allTestInfo.append("\t").append(textColor)
-                .append(String.format("Test %-30s  %s, spent %d microseconds",
-                        testName, status, TimeUnit.NANOSECONDS.toMicros(nanos)))
-                .append("\n").append(ANSI_RESET);
+        allTestInfo.append("\t").append(String.format("Test %-30s spent %d microseconds",
+                testName, TimeUnit.NANOSECONDS.toMicros(nanos)))
+                .append("\n");
     }
 
     @Rule
     public Stopwatch stopwatch = new Stopwatch() {
-        @Override
-        protected void succeeded(long nanos, Description description) {
-            logInfo(description, "succeeded", nanos);
-        }
-
-        @Override
-        protected void failed(long nanos, Throwable e, Description description) {
-            logInfo(description, "failed", nanos);
-        }
-
-        @Override
-        protected void skipped(long nanos, AssumptionViolatedException e, Description description) {
-            logInfo(description, "skipped", nanos);
-        }
 
         @Override
         protected void finished(long nanos, Description description) {
-            //logInfo(description, "finished", nanos);
+            logInfo(description, "finished", nanos);
         }
     };
 
     @AfterClass
     public static void afterClass() {
-        log.debug(allTestInfo.toString());
-
+        log.info(allTestInfo.append(ANSI_RESET).toString());
     }
 
     @Rule
