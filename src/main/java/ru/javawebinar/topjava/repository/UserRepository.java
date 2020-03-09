@@ -18,4 +18,8 @@ public interface UserRepository {
     User getByEmail(String email);
 
     List<User> getAll();
+
+    default User getWithMeal(int id) {
+        return get(id);
+    }
 }
