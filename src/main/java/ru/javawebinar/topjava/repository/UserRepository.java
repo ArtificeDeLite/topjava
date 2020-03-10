@@ -20,6 +20,6 @@ public interface UserRepository {
     List<User> getAll();
 
     default User getWithMeal(int id) {
-        return get(id);
+        throw new UnsupportedOperationException();
     }
 }

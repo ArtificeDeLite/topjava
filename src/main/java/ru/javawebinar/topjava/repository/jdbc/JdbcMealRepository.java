@@ -1,6 +1,7 @@
 package ru.javawebinar.topjava.repository.jdbc;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
@@ -13,12 +14,13 @@ import org.springframework.stereotype.Repository;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Function;
 
 @Repository
-public abstract class JdbcMealRepository<T> implements MealRepository {
+public class JdbcMealRepository<T> implements MealRepository {
 
     protected static final RowMapper<Meal> ROW_MAPPER = BeanPropertyRowMapper.newInstance(Meal.class);
 
@@ -28,7 +30,20 @@ public abstract class JdbcMealRepository<T> implements MealRepository {
 
     protected final SimpleJdbcInsert insertMeal;
 
+    @Autowired
     protected Function<LocalDateTime, T> function;
+
+    @Bean
+    @Profile("hsqldb")
+    public Function<LocalDateTime, Timestamp> getTimestamp() {
+        return Timestamp::valueOf;
+    }
+
+    @Bean
+    @Profile("postgres")
+    public Function<LocalDateTime, LocalDateTime> getLocalDateTime() {
+        return dt -> dt;
+    }
 
     @Autowired
     public JdbcMealRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {

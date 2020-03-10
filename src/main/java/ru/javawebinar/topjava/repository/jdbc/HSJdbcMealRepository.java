@@ -13,13 +13,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Function;
 
-@Profile("hsqldb")
-@Repository
+//@Profile("hsqldb")
+//@Repository
 public class HSJdbcMealRepository extends JdbcMealRepository<Timestamp> {
 
-    @Autowired
+    //@Autowired
     public HSJdbcMealRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         super(jdbcTemplate, namedParameterJdbcTemplate);
-        function = Timestamp::valueOf;
+        //function = Timestamp::valueOf;
     }
 }

@@ -2,13 +2,14 @@ package ru.javawebinar.topjava.service;
 
 import org.junit.Test;
 import org.springframework.test.context.ActiveProfiles;
+import ru.javawebinar.topjava.Profiles;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.model.User;
 
 import static ru.javawebinar.topjava.MealTestData.*;
 import static ru.javawebinar.topjava.UserTestData.*;
 
-@ActiveProfiles("datajpa")
+@ActiveProfiles(Profiles.DATAJPA)
 public class DataJpaMealServiceTest extends MealServiceTest {
     @Test
     public void getWithUser() throws Exception {

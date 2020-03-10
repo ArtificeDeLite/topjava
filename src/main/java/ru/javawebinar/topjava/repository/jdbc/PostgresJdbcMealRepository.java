@@ -8,13 +8,13 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 
-@Profile("postgres")
-@Repository
+//@Profile("postgres")
+//@Repository
 public class PostgresJdbcMealRepository extends JdbcMealRepository<LocalDateTime> {
     @Autowired
     public PostgresJdbcMealRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
         super(jdbcTemplate, namedParameterJdbcTemplate);
-        function = (s) -> s;
+        //function = (s) -> s;
     }
 
 }
