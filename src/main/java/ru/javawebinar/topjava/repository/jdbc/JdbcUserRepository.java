@@ -13,10 +13,11 @@ import ru.javawebinar.topjava.model.Role;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.repository.UserRepository;
 
-import javax.validation.*;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
+
+import static ru.javawebinar.topjava.util.ValidationUtil.validate;
 
 @Repository
 @Transactional(readOnly = true)
@@ -27,9 +28,6 @@ public class JdbcUserRepository implements UserRepository {
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private final SimpleJdbcInsert insertUser;
-
-    private static ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
-    private static Validator validator = validatorFactory.getValidator();
 
     private static final ResultSetExtractor<List<User>> RESULT_SET_EXTRACTOR = rs -> {
         Map<Integer, Set<Role>> mapRoles = new HashMap<>();
@@ -44,7 +42,9 @@ public class JdbcUserRepository implements UserRepository {
             user.setCaloriesPerDay(rs.getInt("calories_per_day"));
 
             mapUsers.putIfAbsent(user.getId(), user);
-            mapRoles.computeIfAbsent(user.getId(), k -> new HashSet<>()).add(Role.valueOf(rs.getString("role")));
+            if (rs.getString("role") != null) {
+                mapRoles.computeIfAbsent(user.getId(), k -> new HashSet<>()).add(Role.valueOf(rs.getString("role")));
+            }
         }
         mapUsers.values().forEach(u -> u.setRoles(mapRoles.get(u.getId())));
         return List.copyOf(mapUsers.values());
@@ -63,8 +63,7 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     @Transactional
     public User save(User user) {
-        if (validator.validate(user).size() != 0)
-            throw new ConstraintViolationException(validator.validate(user));
+        validate(user);
         BeanPropertySqlParameterSource parameterSource = new BeanPropertySqlParameterSource(user);
 
         if (user.isNew()) {
@@ -74,7 +73,7 @@ public class JdbcUserRepository implements UserRepository {
                 "UPDATE users SET name=:name, email=:email, password=:password, " +
                         "registered=:registered, enabled=:enabled, calories_per_day=:caloriesPerDay WHERE id=:id", parameterSource) != 0) {
             if (jdbcTemplate.update("delete FROM user_roles WHERE user_id=?", user.getId()) == 0) {
-                return null;
+                //return null;
             }
         } else {
             return null;
@@ -92,14 +91,14 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     public User get(int id) {
         List<User> users = jdbcTemplate.query(
-                "SELECT * FROM users JOIN user_roles ON users.id = user_roles.user_id WHERE id=?", RESULT_SET_EXTRACTOR, id);
+                "SELECT * FROM users LEFT JOIN user_roles ON users.id = user_roles.user_id WHERE id=?", RESULT_SET_EXTRACTOR, id);
         return DataAccessUtils.singleResult(users);
     }
 
     @Override
     public User getByEmail(String email) {
         List<User> users = jdbcTemplate.query(
-                "SELECT * FROM users JOIN user_roles ON users.id = user_roles.user_id WHERE email=?", RESULT_SET_EXTRACTOR, email);
+                "SELECT * FROM users LEFT JOIN user_roles ON users.id = user_roles.user_id WHERE email=?", RESULT_SET_EXTRACTOR, email);
         return DataAccessUtils.singleResult(users);
     }
 
@@ -107,7 +106,7 @@ public class JdbcUserRepository implements UserRepository {
     @EntityGraph(attributePaths = {"meals", "roles"})
     public List<User> getAll() {
         return jdbcTemplate.query(
-                "SELECT * FROM users JOIN user_roles ON users.id = user_roles.user_id ORDER BY name, email", RESULT_SET_EXTRACTOR);
+                "SELECT * FROM users LEFT JOIN user_roles ON users.id = user_roles.user_id ORDER BY name, email", RESULT_SET_EXTRACTOR);
     }
 
     public int[] batchInsert(User user) {

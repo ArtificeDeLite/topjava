@@ -27,18 +27,6 @@ public abstract class AbstractMealServiceTest extends AbstractServiceTest {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private MealRepository repository;
 
-    @Autowired
-    private Environment environment;
-
-    private boolean isJdbcProfile() {
-        for (String profile : environment.getActiveProfiles()) {
-            if (Profiles.JDBC.equals(profile)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Test
     public void delete() throws Exception {
         service.delete(MEAL1_ID, USER_ID);

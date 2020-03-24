@@ -29,33 +29,22 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     @Autowired
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private UserRepository repository;
-
+/*
     @Autowired
     private CacheManager cacheManager;
 
     @Autowired(required = false)
     protected JpaUtil jpaUtil;
 
-    @Autowired
-    private Environment environment;
 
     @Before
     public void setUp() throws Exception {
         if (!isJdbcProfile()) {
             cacheManager.getCache("users").clear();
             jpaUtil.clear2ndLevelHibernateCache();
-
         }
-    }
+    }*/
 
-    private boolean isJdbcProfile() {
-        for (String profile: environment.getActiveProfiles()) {
-            if (Profiles.JDBC.equals(profile)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     @Test
     public void create() throws Exception {
@@ -98,6 +87,12 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     public void getByEmail() throws Exception {
         User user = service.getByEmail("user@yandex.ru");
         USER_MATCHER.assertMatch(user, USER);
+    }
+
+    @Test
+    public void getByEmailTwoRoles() throws Exception {
+        User user = service.getByEmail("admin@gmail.com");
+        USER_MATCHER.assertMatch(user, ADMIN);
     }
 
     @Test

@@ -4,6 +4,11 @@ package ru.javawebinar.topjava.util;
 import ru.javawebinar.topjava.model.AbstractBaseEntity;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
+import javax.validation.ConstraintViolationException;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+
 public class ValidationUtil {
 
     private ValidationUtil() {
@@ -54,4 +59,13 @@ public class ValidationUtil {
         }
         return result;
     }
+
+    private static ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
+    private static Validator validator = validatorFactory.getValidator();
+
+    public static  <T> void validate(T t){
+        if (validator.validate(t).size() != 0)
+            throw new ConstraintViolationException(validator.validate(t));
+    }
+
 }
