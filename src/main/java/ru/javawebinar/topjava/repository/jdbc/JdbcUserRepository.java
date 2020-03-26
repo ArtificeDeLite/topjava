@@ -16,6 +16,7 @@ import ru.javawebinar.topjava.repository.UserRepository;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static ru.javawebinar.topjava.util.ValidationUtil.validate;
 
@@ -30,8 +31,8 @@ public class JdbcUserRepository implements UserRepository {
     private final SimpleJdbcInsert insertUser;
 
     private static final ResultSetExtractor<List<User>> RESULT_SET_EXTRACTOR = rs -> {
-        Map<Integer, Set<Role>> mapRoles = new HashMap<>();
-        Map<Integer, User> mapUsers = new HashMap<>();
+        Map<Integer, Set<Role>> mapRoles = new LinkedHashMap<>();
+        Map<Integer, User> mapUsers = new LinkedHashMap<>();
         while (rs.next()) {
             User user = new User();
             user.setId(rs.getInt("id"));
@@ -47,6 +48,9 @@ public class JdbcUserRepository implements UserRepository {
             }
         }
         mapUsers.values().forEach(u -> u.setRoles(mapRoles.get(u.getId())));
+/*        return mapUsers.values().stream()
+                .sorted(Comparator.comparing(User::getEmail).thenComparing(User::getName))
+                .collect(Collectors.toUnmodifiableList());*/
         return List.copyOf(mapUsers.values());
     };
 
@@ -72,9 +76,7 @@ public class JdbcUserRepository implements UserRepository {
         } else if (namedParameterJdbcTemplate.update(
                 "UPDATE users SET name=:name, email=:email, password=:password, " +
                         "registered=:registered, enabled=:enabled, calories_per_day=:caloriesPerDay WHERE id=:id", parameterSource) != 0) {
-            if (jdbcTemplate.update("delete FROM user_roles WHERE user_id=?", user.getId()) == 0) {
-                //return null;
-            }
+            jdbcTemplate.update("delete FROM user_roles WHERE user_id=?", user.getId());
         } else {
             return null;
         }

@@ -24,7 +24,7 @@ public class JdbcUserServiceTest extends AbstractUserServiceTest {
         USER_MATCHER.assertMatch(created, newUser);
         USER_MATCHER.assertMatch(service.get(newId), newUser);
         USER_MATCHER.assertMatch(service.getByEmail("new@gmail.com"), newUser);
-        USER_MATCHER.assertMatch(service.getAll(), ADMIN, USER, newUser);
+        USER_MATCHER.assertMatch(service.getAll(), ADMIN, newUser, USER);
 
         newUser.setRoles(Collections.singleton(Role.ROLE_USER));
         service.update(newUser);

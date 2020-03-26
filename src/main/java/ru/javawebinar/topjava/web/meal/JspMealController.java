@@ -55,7 +55,7 @@ public class JspMealController extends MealController {
         return "meals";
     }
 
-    @PostMapping/*(params = "update")*/
+    @PostMapping
     public String update(HttpServletRequest request) throws UnsupportedEncodingException {
         request.setCharacterEncoding("UTF-8");
         Meal meal = new Meal(
@@ -68,21 +68,8 @@ public class JspMealController extends MealController {
         } else {
             update(meal, Integer.parseInt(request.getParameter("id")));
         }
-        //update(meal, Integer.parseInt(request.getParameter("id")));
 
         return "redirect:meals";
     }
-/*
-    @PostMapping(params = "create")
-    public String create(HttpServletRequest request) throws UnsupportedEncodingException {
-        request.setCharacterEncoding("UTF-8");
-        Meal meal = new Meal(
-                LocalDateTime.parse(request.getParameter("dateTime")),
-                request.getParameter("description"),
-                Integer.parseInt(request.getParameter("calories")));
-        create(meal);
-
-        return "redirect:meals";
-    }*/
 
 }
