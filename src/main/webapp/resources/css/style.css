@@ -1,8 +1,8 @@
-dl {
+/*dl {
     background: none repeat scroll 0 0 #FAFAFA;
     margin: 8px 0;
     padding: 0;
-}
+}*/
 
 dt {
     display: inline-block;
@@ -23,6 +23,10 @@ tr[data-mealExcess="true"] {
     color: red;
 }
 
+tr[data-userEnabled="false"] {
+    color: #a8a8a8;
+}
+
 .fa {
     cursor: pointer;
 }
@@ -32,9 +36,11 @@ html {
     position: relative;
     min-height: 100%;
 }
+
 body {
     margin-bottom: 60px; /* Margin bottom by footer height */
 }
+
 .footer {
     position: absolute;
     bottom: 0;

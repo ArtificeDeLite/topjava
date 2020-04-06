@@ -40,3 +40,23 @@ $(function () {
         }
     );
 });
+
+function updateTable() {
+    $.get(context.ajaxUrl, function (data) {
+        context.datatableApi.clear().rows.add(data).draw();
+    });
+}
+
+function changeEnabled(ctx, enabled) {
+    let id = $(ctx).closest('tr').attr('id');
+
+    $.ajax({
+        type: "POST",
+        url: context.ajaxUrl + id,
+        data: {"enabled": enabled}
+    }).done(function () {
+        updateTable();
+        if (enabled) successNoty("User enabled");
+        else successNoty("User disabled");
+    });
+}

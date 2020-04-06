@@ -5,7 +5,7 @@ function makeEditable(ctx) {
     form = $('#detailsForm');
     $(".delete").click(function () {
         if (confirm('Are you sure?')) {
-            deleteRow($(this).attr("id"));
+            deleteRow($(".delete").closest('tr').attr("id"));
         }
     });
 
@@ -32,11 +32,7 @@ function deleteRow(id) {
     });
 }
 
-function updateTable() {
-    $.get(context.ajaxUrl, function (data) {
-        context.datatableApi.clear().rows.add(data).draw();
-    });
-}
+
 
 function save() {
     $.ajax({
