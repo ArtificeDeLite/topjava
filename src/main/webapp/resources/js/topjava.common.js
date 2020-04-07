@@ -33,7 +33,6 @@ function deleteRow(id) {
 }
 
 
-
 function save() {
     $.ajax({
         type: "POST",
@@ -72,4 +71,8 @@ function failNoty(jqXHR) {
         type: "error",
         layout: "bottomRight"
     }).show();
+}
+
+function drawTable(data) {
+    context.datatableApi.clear().rows.add(data).draw();
 }

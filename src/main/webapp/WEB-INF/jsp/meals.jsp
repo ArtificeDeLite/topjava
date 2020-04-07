@@ -15,7 +15,7 @@
     <div class="container">
         <h3 class="text-center"><spring:message code="meal.title"/></h3>
 
-        <form>
+        <form id="filterForm">
             <dl>
                 <dt><spring:message code="meal.startDate"/>:</dt>
                 <dd>
@@ -35,8 +35,7 @@
                 <dd><input type="time" id="endTime" name="endTime" value="${param.endTime}"></dd>
             </dl>
         </form>
-        <button class="btn btn-primary"
-                onclick="filterTable(startDate.value, endDate.value, startTime.value, endTime.value)">
+        <button class="btn btn-primary" onclick="filterTable()">
             <span class="fa fa-filter"></span>
             <spring:message code="meal.filter"/>
         </button>

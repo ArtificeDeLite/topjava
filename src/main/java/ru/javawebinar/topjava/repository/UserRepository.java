@@ -23,7 +23,6 @@ public interface UserRepository {
         throw new UnsupportedOperationException();
     }
 
-    default User changeEnabled(int id, boolean enabled) {
-        throw new UnsupportedOperationException();
-    }
+    User changeEnabled(int id, boolean enabled);
+
 }

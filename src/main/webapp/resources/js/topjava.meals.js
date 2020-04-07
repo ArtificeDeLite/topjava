@@ -36,28 +36,18 @@ $(function () {
 });
 
 function updateTable() {
-    filterTable(startDate.value, endDate.value, startTime.value, endTime.value);
+    filterTable();
 }
 
-function filterTable(startDate, endDate, startTime, endTime) {
+function filterTable() {
+    let filterForm = $('#filterForm');
     $.get(
         context.ajaxUrl + "filter",
-        {
-            "startDate": startDate,
-            "endDate": endDate,
-            "startTime": startTime,
-            "endTime": endTime
-        },
-
-        function (data) {
-            context.datatableApi.clear().rows.add(data).draw();
-        });
+        filterForm.serialize(),
+        drawTable);
 }
 
-function resetFilter(startDate, endDate, startTime, endTime) {
-    startDate.value = "";
-    endDate.value = "";
-    startTime.value = "";
-    endTime.value = "";
-    filterTable(startDate.value, endDate.value, startTime.value, endTime.value);
+function resetFilter() {
+    $('#filterForm').trigger('reset');
+    $.get(context.ajaxUrl, drawTable);
 }

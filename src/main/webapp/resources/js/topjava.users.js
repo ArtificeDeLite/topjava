@@ -42,9 +42,7 @@ $(function () {
 });
 
 function updateTable() {
-    $.get(context.ajaxUrl, function (data) {
-        context.datatableApi.clear().rows.add(data).draw();
-    });
+    $.get(context.ajaxUrl, drawTable);
 }
 
 function changeEnabled(ctx, enabled) {
@@ -55,8 +53,12 @@ function changeEnabled(ctx, enabled) {
         url: context.ajaxUrl + id,
         data: {"enabled": enabled}
     }).done(function () {
-        updateTable();
-        if (enabled) successNoty("User enabled");
-        else successNoty("User disabled");
+        if (enabled) {
+            successNoty("User enabled");
+            $('#' + id).css('color', "black");
+        } else {
+            successNoty("User diasabled");
+            $('#' + id).css('color', "#a8a8a8");
+        }
     });
 }
