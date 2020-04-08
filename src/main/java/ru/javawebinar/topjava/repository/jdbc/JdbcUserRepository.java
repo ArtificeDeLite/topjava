@@ -119,7 +119,7 @@ public class JdbcUserRepository implements UserRepository {
         return u;
     }
 
-    @Override
+/*    @Override
     @Transactional
     public User changeEnabled(int id, boolean enabled) {
         User user = get(id);
@@ -128,5 +128,5 @@ public class JdbcUserRepository implements UserRepository {
             return save(user);
         }
         return null;
-    }
+    }*/
 }

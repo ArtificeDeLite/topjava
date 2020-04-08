@@ -57,11 +57,7 @@ public class AdminRestController extends AbstractUserController {
 
     @PostMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public User changeEnabled(@PathVariable int id, @RequestBody String enabled) {
-
-        if ("false".equals(enabled)) return super.changeEnabled(id, false);
-        if ("true".equals(enabled)) return super.changeEnabled(id, true);
-
-        return null;
+    public User changeEnabled(@PathVariable int id, @RequestBody boolean enabled) {
+        return super.changeEnabled(id, enabled);
     }
 }

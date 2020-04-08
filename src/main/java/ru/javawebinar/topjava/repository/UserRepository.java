@@ -1,5 +1,6 @@
 package ru.javawebinar.topjava.repository;
 
+import org.springframework.transaction.annotation.Transactional;
 import ru.javawebinar.topjava.model.User;
 
 import java.util.List;
@@ -23,6 +24,13 @@ public interface UserRepository {
         throw new UnsupportedOperationException();
     }
 
-    User changeEnabled(int id, boolean enabled);
-
+    @Transactional
+    default User changeEnabled(int id, boolean enabled) {
+        User user = get(id);
+        if (user != null) {
+            user.setEnabled(enabled);
+            return save(user);
+        }
+        return null;
+    }
 }

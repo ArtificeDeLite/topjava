@@ -53,12 +53,7 @@ function changeEnabled(ctx, enabled) {
         url: context.ajaxUrl + id,
         data: {"enabled": enabled}
     }).done(function () {
-        if (enabled) {
-            successNoty("User enabled");
-            $('#' + id).css('color', "black");
-        } else {
-            successNoty("User diasabled");
-            $('#' + id).css('color', "#a8a8a8");
-        }
+        successNoty(enabled ? "User enabled" : "User disabled");
+        $('#' + id).css('color', enabled ? "black" : "#a8a8a8");
     });
 }

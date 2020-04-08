@@ -72,7 +72,7 @@ public class JpaUserRepository implements UserRepository {
         return em.createNamedQuery(User.ALL_SORTED, User.class).getResultList();
     }
 
-    @Override
+/*    @Override
     public User changeEnabled(int id, boolean enabled) {
         User user = get(id);
         if (user != null) {
@@ -80,5 +80,5 @@ public class JpaUserRepository implements UserRepository {
             return save(user);
         }
         return null;
-    }
+    }*/
 }

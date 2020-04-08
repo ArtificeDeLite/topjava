@@ -48,7 +48,7 @@ public class DataJpaUserRepository implements UserRepository {
         return crudRepository.getWithMeals(id);
     }
 
-    @Override
+/*    @Override
     @Transactional
     public User changeEnabled(int id, boolean enabled) {
         User user = get(id);
@@ -57,5 +57,5 @@ public class DataJpaUserRepository implements UserRepository {
             return save(user);
         }
         return null;
-    }
+    }*/
 }
