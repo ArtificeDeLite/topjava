@@ -76,12 +76,43 @@ $("#dateTime").datetimepicker({
     format: 'Y-m-d H:i'
 });
 
-$('#startDate, #endDate').datetimepicker({
+
+$('#startDate').datetimepicker({
     timepicker: false,
-    format: 'Y-m-d'
+    format: 'Y-m-d',
+    onShow:function( ct ){
+        this.setOptions({
+            maxDate:jQuery('#endDate').val()?jQuery('#endDate').val():false
+        })
+    }
 });
 
-$('#startTime, #endTime').datetimepicker({
+$('#endDate').datetimepicker({
+    timepicker: false,
+    format: 'Y-m-d',
+    onShow:function( ct ){
+        this.setOptions({
+            minDate:jQuery('#startDate').val()?jQuery('#startDate').val():false
+        })
+    }
+});
+
+$('#startTime').datetimepicker({
     datepicker: false,
-    format: 'H:i'
+    format: 'H:i',
+    onShow:function( ct ){
+        this.setOptions({
+            maxTime:jQuery('#endTime').val()?jQuery('#endTime').val():false
+        })
+    }
+});
+
+$('#endTime').datetimepicker({
+    datepicker: false,
+    format: 'H:i',
+    onShow:function( ct ){
+        this.setOptions({
+            minTime:jQuery('#startTime').val()?jQuery('#startTime').val():false
+        })
+    }
 });
