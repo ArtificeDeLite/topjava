@@ -14,7 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
-import static ru.javawebinar.topjava.web.BindingUtil.bindingResultCheck;
+import static ru.javawebinar.topjava.util.ValidationUtil.bindingResultCheck;
 
 @RestController
 @RequestMapping("/ajax/profile/meals")

@@ -112,42 +112,11 @@
 </div>
 <jsp:include page="fragments/footer.jsp"/>
 </body>
-<link rel="stylesheet" type="text/css" href="webjars/datetimepicker/2.5.20/jquery.datetimepicker.css"/>
-<script src="webjars/jquery/3.4.1/jquery.js"></script>
-<script src="webjars/datetimepicker/2.5.20/build/jquery.datetimepicker.full.min.js"></script>
 <script type="text/javascript">
-
-
     const i18n = [];
-
     i18n["addTitle"] = '<spring:message code="meal.add"/>';
     i18n["editTitle"] = '<spring:message code="meal.edit"/>';
 
     <jsp:include page="fragments/i18n.jsp"/>
-
-    $.datetimepicker.setLocale(navigator.language);
-
-    $("#dateTime").datetimepicker({
-        format: 'Y-m-d H:i'
-    });
-
-    $("#startDate").datetimepicker({
-        timepicker: false,
-        format: 'Y-m-d'
-    });
-    $("#endDate").datetimepicker({
-        timepicker: false,
-        format: 'Y-m-d'
-    });
-    $("#startTime").datetimepicker({
-        datepicker: false,
-        format: 'H:i'
-    });
-    $("#endTime").datetimepicker({
-        datepicker: false,
-        format: 'H:i'
-    });
-
-
 </script>
 </html>

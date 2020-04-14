@@ -4,17 +4,9 @@ $.ajaxSetup({
     converters: {
         "text json": function (data) {
             let result = JSON.parse(data);
-            if (Array.isArray(result)) {
-                result.forEach(function (value) {
-                    if (value.hasOwnProperty("dateTime")) {
-                        value["dateTime"] = value["dateTime"].replace('T', ' ').substring(0, 16);
-                    }
-                });
-            } else {
-                if (result.hasOwnProperty("dateTime")) {
-                    result["dateTime"] = result["dateTime"].replace('T', ' ').substring(0, 16);
-                }
-            }
+            $(result).each(function () {
+                this.dateTime = this.dateTime.replace('T', ' ').substring(0, 16);
+            });
             return result;
         }
     }
@@ -23,14 +15,14 @@ $.ajaxSetup({
 function updateFilteredTable() {
     $.ajax({
         type: "GET",
-        url: "ajax/profile/meals/filter",
+        url: mealAjaxUrl + "filter",
         data: $("#filter").serialize()
     }).done(updateTableByData);
 }
 
 function clearFilter() {
     $("#filter")[0].reset();
-    $.get("ajax/profile/meals/", updateTableByData);
+    $.get(mealAjaxUrl, updateTableByData);
 }
 
 $(function () {
@@ -71,11 +63,25 @@ $(function () {
                 ]
             ],
             "createdRow": function (row, data, dataIndex) {
-                if (data.excess) {
-                    $(row).attr("data-mealExcess", true);
-                }
+                $(row).attr("data-mealExcess", data.excess);
             }
         }),
         updateTable: updateFilteredTable
     });
+});
+
+$.datetimepicker.setLocale(navigator.language);
+
+$("#dateTime").datetimepicker({
+    format: 'Y-m-d H:i'
+});
+
+$('#startDate, #endDate').datetimepicker({
+    timepicker: false,
+    format: 'Y-m-d'
+});
+
+$('#startTime, #endTime').datetimepicker({
+    datepicker: false,
+    format: 'H:i'
 });

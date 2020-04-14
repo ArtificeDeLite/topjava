@@ -10,9 +10,8 @@ import ru.javawebinar.topjava.to.UserTo;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.StringJoiner;
 
-import static ru.javawebinar.topjava.web.BindingUtil.bindingResultCheck;
+import static ru.javawebinar.topjava.util.ValidationUtil.bindingResultCheck;
 
 @RestController
 @RequestMapping("/ajax/admin/users")

@@ -20,4 +20,9 @@
     <script type="text/javascript" src="webjars/datatables/1.10.20/js/jquery.dataTables.min.js" defer></script>
     <script type="text/javascript" src="webjars/datatables/1.10.20/js/dataTables.bootstrap4.min.js" defer></script>
     <script type="text/javascript" src="webjars/noty/3.1.4/lib/noty.min.js" defer></script>
+
+    <link rel="stylesheet" type="text/css" href="webjars/datetimepicker/2.5.20/jquery.datetimepicker.css"/>
+    <script type="text/javascript" src="webjars/jquery/3.4.1/jquery.js"></script>
+    <script type="text/javascript" src="webjars/datetimepicker/2.5.20/build/jquery.datetimepicker.full.min.js"
+            defer></script>
 </head>
