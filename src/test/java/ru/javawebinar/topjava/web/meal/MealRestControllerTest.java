@@ -7,8 +7,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.javawebinar.topjava.MealTestData;
+import ru.javawebinar.topjava.TestMatcher;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.service.MealService;
+import ru.javawebinar.topjava.util.exception.ErrorInfo;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
 import ru.javawebinar.topjava.web.json.JsonUtil;
@@ -25,6 +27,7 @@ import static ru.javawebinar.topjava.UserTestData.USER_ID;
 import static ru.javawebinar.topjava.model.AbstractBaseEntity.START_SEQ;
 import static ru.javawebinar.topjava.util.MealsUtil.createTo;
 import static ru.javawebinar.topjava.util.MealsUtil.getTos;
+import static ru.javawebinar.topjava.util.exception.ErrorType.VALIDATION_ERROR;
 
 class MealRestControllerTest extends AbstractControllerTest {
 
@@ -125,5 +128,61 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .with(userHttpBasic(USER)))
                 .andExpect(status().isOk())
                 .andExpect(MEAL_TO_MATCHER.contentJson(getTos(MEALS, USER.getCaloriesPerDay())));
+    }
+
+    @Test
+    void createInvalid() throws Exception {
+        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR, "[dateTime] must not be null");
+        TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class, "detail");
+
+        Meal newMeal = new Meal(null, "description", 123);
+        ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(newMeal))
+                .with(userHttpBasic(USER)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(matcher.contentJson(info));
+    }
+
+    @Test
+    void updateInvalid() throws Exception {
+        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL + MEAL1_ID, VALIDATION_ERROR, "[description] must not be blank");
+        TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class);
+
+        Meal updated = MealTestData.getUpdated();
+        updated.setDescription(null);
+        perform(MockMvcRequestBuilders.put(REST_URL + MEAL1_ID).contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(updated))
+                .with(userHttpBasic(USER)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(matcher.contentJson(info));
+    }
+
+    @Test
+    void updateExistDate() throws Exception {
+        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL + MEAL1_ID, VALIDATION_ERROR, "Meal with this date and time already exists");
+        TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class);
+
+        Meal updated = MealTestData.getUpdated();
+        updated.setDateTime((MEAL2.getDateTime()));
+        perform(MockMvcRequestBuilders.put(REST_URL + MEAL1_ID).contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(updated))
+                .with(userHttpBasic(USER)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(matcher.contentJson(info));
+    }
+
+    @Test
+    void createExistDate() throws Exception {
+        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR, "Meal with this date and time already exists");
+        TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class, "detail");
+
+        Meal newMeal = new Meal(MEAL2.getDateTime(), "description", 123);
+        ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(JsonUtil.writeValue(newMeal))
+                .with(userHttpBasic(USER)))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(matcher.contentJson(info));
     }
 }

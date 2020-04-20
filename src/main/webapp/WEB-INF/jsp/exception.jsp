@@ -6,7 +6,9 @@
 <jsp:include page="fragments/headTag.jsp"/>
 
 <body>
-<jsp:include page="fragments/bodyHeader.jsp"/>
+<jsp:include page="fragments/bodyHeader.jsp">
+    <jsp:param name="page" value="exception"/>
+</jsp:include>
 
 <div class="jumbotron">
     <div class="container text-center">

@@ -7,7 +7,9 @@
 <jsp:include page="fragments/headTag.jsp"/>
 
 <body>
-<jsp:include page="fragments/bodyHeader.jsp"/>
+<jsp:include page="fragments/bodyHeader.jsp">
+    <jsp:param name="page" value="${register ? 'profile/register' : 'profile'}"/>
+</jsp:include>
 
 <div class="jumbotron pt-4">
     <div class="container">

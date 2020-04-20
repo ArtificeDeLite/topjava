@@ -1,5 +1,7 @@
 package ru.javawebinar.topjava.service;
 
+import org.springframework.cglib.core.Local;
+import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -7,6 +9,9 @@ import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalAmount;
+import java.time.temporal.TemporalUnit;
 import java.util.List;
 
 import static ru.javawebinar.topjava.util.DateTimeUtil.atStartOfDayOrMin;
@@ -50,5 +55,11 @@ public class MealService {
 
     public Meal getWithUser(int id, int userId) {
         return checkNotFoundWithId(repository.getWithUser(id, userId), id);
+    }
+
+    public Meal getByDateTime(LocalDateTime dateTime, int userId) {
+        List<Meal> meals = repository.getBetweenHalfOpen(dateTime, dateTime.plusMinutes(1), userId);
+        if (meals == null) return null;
+        return DataAccessUtils.singleResult(meals);
     }
 }
