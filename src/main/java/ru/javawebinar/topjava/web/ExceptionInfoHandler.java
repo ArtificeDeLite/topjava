@@ -2,12 +2,15 @@ package ru.javawebinar.topjava.web;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -19,6 +22,8 @@ import ru.javawebinar.topjava.util.exception.*;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import static ru.javawebinar.topjava.util.exception.ErrorType.*;
@@ -27,6 +32,13 @@ import static ru.javawebinar.topjava.util.exception.ErrorType.*;
 @Order(Ordered.HIGHEST_PRECEDENCE + 5)
 public class ExceptionInfoHandler {
     private static Logger log = LoggerFactory.getLogger(ExceptionInfoHandler.class);
+
+    private final MessageSource messageSource;
+
+    @Autowired
+    public ExceptionInfoHandler(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
 
     //  http://stackoverflow.com/a/22358422/548473
     @ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)
@@ -51,28 +63,28 @@ public class ExceptionInfoHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)  // 422
     public ErrorInfo handleMethodArgumentNotValidException(HttpServletRequest req, Exception e) {
-        String errorDescription = ((MethodArgumentNotValidException) e).getBindingResult().getFieldErrors().stream()
+/*        List<String> errorDescription = ((MethodArgumentNotValidException) e).getBindingResult().getFieldErrors().stream()
                 .map(fe -> String.format("[%s] %s", fe.getField(), fe.getDefaultMessage()))
-                .collect(Collectors.joining("<br>"));
+                .collect(Collectors.toList());*/
 
-        return new ErrorInfo(req.getRequestURL(), VALIDATION_ERROR, errorDescription);
+        List<String> errorDetails = getErrorDetails(((MethodArgumentNotValidException) e).getBindingResult());
+        return new ErrorInfo(req.getRequestURL(), VALIDATION_ERROR, errorDetails);
     }
 
     @ExceptionHandler(DataAlreadyExistException.class)
     @ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)  // 422
-    public ErrorInfo handleDataAlreadyExistException(HttpServletRequest req, Exception e) {
-        return new ErrorInfo(req.getRequestURL(), VALIDATION_ERROR, e.getMessage());
+    public ErrorInfo handleDataAlreadyExistException(HttpServletRequest req, Exception e, Locale locale) {
+        String errorMessage = messageSource.getMessage(e.getMessage(), null, locale);
+        return new ErrorInfo(req.getRequestURL(), VALIDATION_ERROR, List.of(errorMessage));
     }
 
 
     @ExceptionHandler(BindException.class)
     @ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)  // 422
     public ErrorInfo handleBindException(HttpServletRequest req, Exception e) {
-        String errorDescription = ((BindException) e).getBindingResult().getFieldErrors().stream()
-                .map(fe -> String.format("[%s] %s", fe.getField(), fe.getDefaultMessage()))
-                .collect(Collectors.joining("<br>"));
+        List<String> errorDetails = getErrorDetails(((BindException) e).getBindingResult());
 
-        return new ErrorInfo(req.getRequestURL(), VALIDATION_ERROR, errorDescription);
+        return new ErrorInfo(req.getRequestURL(), VALIDATION_ERROR, errorDetails);
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -89,6 +101,13 @@ public class ExceptionInfoHandler {
         } else {
             log.warn("{} at request  {}: {}", errorType, req.getRequestURL(), rootCause.toString());
         }
-        return new ErrorInfo(req.getRequestURL(), errorType, rootCause.toString());
+        return new ErrorInfo(req.getRequestURL(), errorType, List.of(e.getMessage()));
+    }
+
+    private List<String> getErrorDetails(BindingResult errors) {
+
+        return errors.getFieldErrors().stream()
+                .map(fe -> String.format("[%s] %s", fe.getField(), fe.getDefaultMessage()))
+                .collect(Collectors.toList());
     }
 }

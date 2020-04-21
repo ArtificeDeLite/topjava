@@ -1,5 +1,6 @@
 package ru.javawebinar.topjava.web.user;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -18,9 +19,12 @@ import javax.validation.Valid;
 @RequestMapping("/profile")
 public class ProfileUIController extends AbstractUserController {
 
+    @Autowired
+    UserFormValidator userFormValidator;
+
     @InitBinder("userTo")
     protected void initBinder(WebDataBinder binder) {
-        binder.setValidator(new UserFormValidator(getService()));
+        binder.addValidators(userFormValidator);
     }
 
     @GetMapping

@@ -13,7 +13,8 @@ import ru.javawebinar.topjava.service.UserService;
 import ru.javawebinar.topjava.util.exception.ErrorInfo;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
-import ru.javawebinar.topjava.web.json.JsonUtil;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -97,7 +98,7 @@ class AdminRestControllerTest extends AbstractControllerTest {
         perform(MockMvcRequestBuilders.put(REST_URL + USER_ID)
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(userHttpBasic(ADMIN))
-                .content(JsonUtil.writeValue(updated)))
+                .content(UserTestData.jsonWithPassword(updated, updated.getPassword())))
                 .andExpect(status().isNoContent());
 
         USER_MATCHER.assertMatch(userService.get(USER_ID), updated);
@@ -142,7 +143,7 @@ class AdminRestControllerTest extends AbstractControllerTest {
 
     @Test
     void updateInvalid() throws Exception {
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL + USER_ID, VALIDATION_ERROR, "[name] must not be blank");
+        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL + USER_ID, VALIDATION_ERROR, List.of("[name] must not be blank"));
         TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class);
 
         User updated = UserTestData.getUpdated();
@@ -157,7 +158,7 @@ class AdminRestControllerTest extends AbstractControllerTest {
 
     @Test
     void createInvalid() throws Exception {
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR, "[email] must be a well-formed email address");
+        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR, List.of("[email] must be a well-formed email address"));
         TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class);
 
         User newUser = new User(null, "name", "email", "password", 2300, Role.USER);
@@ -171,7 +172,7 @@ class AdminRestControllerTest extends AbstractControllerTest {
 
     @Test
     void updateExistEmail() throws Exception {
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL + USER_ID, VALIDATION_ERROR, "User with this email already exists");
+        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL + USER_ID, VALIDATION_ERROR, List.of("User with this email already exists"));
         TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class);
 
         User updated = UserTestData.getUpdated();
@@ -186,7 +187,7 @@ class AdminRestControllerTest extends AbstractControllerTest {
 
     @Test
     void createExistEmail() throws Exception {
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR, "User with this email already exists");
+        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR, List.of("User with this email already exists"));
         TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class);
 
         User newUser = new User(null, "name", "user@yandex.ru", "password", 2300, Role.USER);

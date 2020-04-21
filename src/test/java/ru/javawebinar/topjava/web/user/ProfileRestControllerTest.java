@@ -14,6 +14,8 @@ import ru.javawebinar.topjava.util.exception.ErrorInfo;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
 import ru.javawebinar.topjava.web.json.JsonUtil;
 
+import java.util.List;
+
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -83,7 +85,7 @@ class ProfileRestControllerTest extends AbstractControllerTest {
     @Test
     void updateInvalid() throws Exception {
 
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR, "[email] must not be blank");
+        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR, List.of("[email] must not be blank"));
         TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class);
 
         UserTo updatedTo = new UserTo(null, "newName", null, "newPassword", 1500);
@@ -97,7 +99,7 @@ class ProfileRestControllerTest extends AbstractControllerTest {
 
     @Test
     void registerInvalid() throws Exception {
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL + "/register", VALIDATION_ERROR, "[caloriesPerDay] must be between 10 and 10000");
+        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL + "/register", VALIDATION_ERROR, List.of("[caloriesPerDay] must be between 10 and 10000"));
         TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class);
 
         UserTo newTo = new UserTo(null, "newName", "newemail@ya.ru", "newPassword", 0);
@@ -112,7 +114,7 @@ class ProfileRestControllerTest extends AbstractControllerTest {
 
     @Test
     void registerExistEmail() throws Exception {
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL + "/register", VALIDATION_ERROR, "User with this email already exists");
+        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL + "/register", VALIDATION_ERROR, List.of("User with this email already exists"));
         TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class);
 
         UserTo newTo = new UserTo(null, "newName", "user@yandex.ru", "newPassword", 2000);
@@ -127,7 +129,7 @@ class ProfileRestControllerTest extends AbstractControllerTest {
     @Test
     void updateExistEmail() throws Exception {
 
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR, "User with this email already exists");
+        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR, List.of("User with this email already exists"));
         TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class);
 
         UserTo updatedTo = new UserTo(null, "newName", "admin@gmail.com", "newPassword", 1500);

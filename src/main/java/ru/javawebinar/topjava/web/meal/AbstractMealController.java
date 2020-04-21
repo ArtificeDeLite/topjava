@@ -8,7 +8,6 @@ import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.service.MealService;
 import ru.javawebinar.topjava.to.MealTo;
 import ru.javawebinar.topjava.util.MealsUtil;
-import ru.javawebinar.topjava.util.exception.DataAlreadyExistException;
 import ru.javawebinar.topjava.web.SecurityUtil;
 
 import java.time.LocalDate;
@@ -45,7 +44,6 @@ public abstract class AbstractMealController {
     public Meal create(Meal meal) {
         int userId = SecurityUtil.authUserId();
         checkNew(meal);
-        checkExistDate(meal, userId);
         log.info("create {} for user {}", meal, userId);
         return service.create(meal, userId);
     }
@@ -53,7 +51,6 @@ public abstract class AbstractMealController {
     public void update(Meal meal, int id) {
         int userId = SecurityUtil.authUserId();
         assureIdConsistent(meal, id);
-        checkExistDate(meal, userId);
         log.info("update {} for user {}", meal, userId);
         service.update(meal, userId);
     }
@@ -71,13 +68,5 @@ public abstract class AbstractMealController {
 
         List<Meal> mealsDateFiltered = service.getBetweenInclusive(startDate, endDate, userId);
         return MealsUtil.getFilteredTos(mealsDateFiltered, SecurityUtil.authUserCaloriesPerDay(), startTime, endTime);
-    }
-
-    private void checkExistDate(Meal meal, int userId) {
-        Meal checkMeal = service.getByDateTime(meal.getDateTime(), userId);
-        if (checkMeal != null)
-            if (meal.getId() == null || !checkMeal.getId().equals(meal.getId())) {
-                throw new DataAlreadyExistException("Meal with this date and time already exists");
-            }
     }
 }

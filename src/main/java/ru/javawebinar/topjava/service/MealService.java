@@ -1,17 +1,16 @@
 package ru.javawebinar.topjava.service;
 
-import org.springframework.cglib.core.Local;
 import org.springframework.dao.support.DataAccessUtils;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
+import ru.javawebinar.topjava.util.exception.DataAlreadyExistException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalAmount;
-import java.time.temporal.TemporalUnit;
 import java.util.List;
 
 import static ru.javawebinar.topjava.util.DateTimeUtil.atStartOfDayOrMin;
@@ -43,13 +42,22 @@ public class MealService {
         return repository.getAll(userId);
     }
 
+    @Transactional
     public void update(Meal meal, int userId) {
         Assert.notNull(meal, "meal must not be null");
+        Meal checkMeal = getByDateTime(meal.getDateTime(), userId);
+        if (checkMeal != null && !meal.getId().equals(checkMeal.getId())) {
+            throw new DataAlreadyExistException("Meal.AlreadyExists");
+        }
         checkNotFoundWithId(repository.save(meal, userId), meal.id());
     }
 
+    @Transactional
     public Meal create(Meal meal, int userId) {
         Assert.notNull(meal, "meal must not be null");
+        if (getByDateTime(meal.getDateTime(), userId) != null) {
+            throw new DataAlreadyExistException("Meal.AlreadyExists");
+        }
         return repository.save(meal, userId);
     }
 
@@ -58,6 +66,7 @@ public class MealService {
     }
 
     public Meal getByDateTime(LocalDateTime dateTime, int userId) {
+        if (dateTime == null) return null;
         List<Meal> meals = repository.getBetweenHalfOpen(dateTime, dateTime.plusMinutes(1), userId);
         if (meals == null) return null;
         return DataAccessUtils.singleResult(meals);

@@ -15,6 +15,8 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
 import ru.javawebinar.topjava.web.json.JsonUtil;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -132,7 +134,7 @@ class MealRestControllerTest extends AbstractControllerTest {
 
     @Test
     void createInvalid() throws Exception {
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR, "[dateTime] must not be null");
+        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR, List.of("[dateTime] must not be null"));
         TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class, "detail");
 
         Meal newMeal = new Meal(null, "description", 123);
@@ -146,7 +148,7 @@ class MealRestControllerTest extends AbstractControllerTest {
 
     @Test
     void updateInvalid() throws Exception {
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL + MEAL1_ID, VALIDATION_ERROR, "[description] must not be blank");
+        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL + MEAL1_ID, VALIDATION_ERROR, List.of("[description] must not be blank"));
         TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class);
 
         Meal updated = MealTestData.getUpdated();
@@ -160,7 +162,7 @@ class MealRestControllerTest extends AbstractControllerTest {
 
     @Test
     void updateExistDate() throws Exception {
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL + MEAL1_ID, VALIDATION_ERROR, "Meal with this date and time already exists");
+        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL + MEAL1_ID, VALIDATION_ERROR, List.of("Meal with this date and time already exists"));
         TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class);
 
         Meal updated = MealTestData.getUpdated();
@@ -174,7 +176,7 @@ class MealRestControllerTest extends AbstractControllerTest {
 
     @Test
     void createExistDate() throws Exception {
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR, "Meal with this date and time already exists");
+        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR, List.of("Meal with this date and time already exists"));
         TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class, "detail");
 
         Meal newMeal = new Meal(MEAL2.getDateTime(), "description", 123);
