@@ -5,17 +5,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import ru.javawebinar.topjava.TestMatcher;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import ru.javawebinar.topjava.UserTestData;
 import ru.javawebinar.topjava.model.Role;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.service.UserService;
-import ru.javawebinar.topjava.util.exception.ErrorInfo;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
 
-import java.util.List;
-
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -143,8 +142,7 @@ class AdminRestControllerTest extends AbstractControllerTest {
 
     @Test
     void updateInvalid() throws Exception {
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL + USER_ID, VALIDATION_ERROR, List.of("[name] must not be blank"));
-        TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class);
+        String errorInfo = getErrorInfo("http://localhost" + REST_URL + USER_ID, VALIDATION_ERROR.toString(), "[name] must not be blank");
 
         User updated = UserTestData.getUpdated();
         updated.setName(null);
@@ -153,13 +151,12 @@ class AdminRestControllerTest extends AbstractControllerTest {
                 .with(userHttpBasic(ADMIN))
                 .content(UserTestData.jsonWithPassword(updated, updated.getPassword())))
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(matcher.contentJson(info));
+                .andExpect((a) -> assertThat(a.getResponse().getContentAsString()).isEqualTo(errorInfo));
     }
 
     @Test
     void createInvalid() throws Exception {
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR, List.of("[email] must be a well-formed email address"));
-        TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class);
+        String errorInfo = getErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR.toString(), "[email] must be a well-formed email address");
 
         User newUser = new User(null, "name", "email", "password", 2300, Role.USER);
         ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL)
@@ -167,13 +164,13 @@ class AdminRestControllerTest extends AbstractControllerTest {
                 .with(userHttpBasic(ADMIN))
                 .content(UserTestData.jsonWithPassword(newUser, "newPass")))
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(matcher.contentJson(info));
+                .andExpect((a) -> assertThat(a.getResponse().getContentAsString()).isEqualTo(errorInfo));
     }
 
     @Test
+    @Transactional(propagation = Propagation.NEVER)
     void updateExistEmail() throws Exception {
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL + USER_ID, VALIDATION_ERROR, List.of("User with this email already exists"));
-        TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class);
+        String errorInfo = getErrorInfo("http://localhost" + REST_URL + USER_ID, VALIDATION_ERROR.toString(), "User with this email already exists");
 
         User updated = UserTestData.getUpdated();
         updated.setEmail("admin@gmail.com");
@@ -181,21 +178,21 @@ class AdminRestControllerTest extends AbstractControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(userHttpBasic(ADMIN))
                 .content(UserTestData.jsonWithPassword(updated, updated.getPassword())))
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(matcher.contentJson(info));
+                .andExpect(status().isConflict())
+                .andExpect((a) -> assertThat(a.getResponse().getContentAsString()).isEqualTo(errorInfo));
     }
 
     @Test
+    @Transactional(propagation = Propagation.NEVER)
     void createExistEmail() throws Exception {
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR, List.of("User with this email already exists"));
-        TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class);
+        String errorInfo = getErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR.toString(), "User with this email already exists");
 
         User newUser = new User(null, "name", "user@yandex.ru", "password", 2300, Role.USER);
         ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .with(userHttpBasic(ADMIN))
                 .content(UserTestData.jsonWithPassword(newUser, "newPass")))
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(matcher.contentJson(info));
+                .andExpect(status().isConflict())
+                .andExpect((a) -> assertThat(a.getResponse().getContentAsString()).isEqualTo(errorInfo));
     }
 }

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
+import ru.javawebinar.topjava.AuthorizedUser;
 import ru.javawebinar.topjava.service.UserService;
 import ru.javawebinar.topjava.to.UserTo;
 
@@ -25,9 +26,11 @@ public class UserFormValidator implements Validator {
     public void validate(Object target, Errors errors) {
 
         UserTo user = (UserTo) target;
+        AuthorizedUser currentUser = ru.javawebinar.topjava.web.SecurityUtil.safeGet();
 
         if (user.getEmail() != null && service.hasEmail(user.getEmail())) {
-            errors.rejectValue("email", "Occupied.userForm.email", "Occupied.userForm.email");
+            if (currentUser == null || !service.getByEmail(user.getEmail()).getId().equals(currentUser.getId()))
+                errors.rejectValue("email", "Occupied.userForm.email", "Occupied.userForm.email");
         }
     }
 }

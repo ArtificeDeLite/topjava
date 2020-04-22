@@ -7,12 +7,6 @@ public class ErrorInfo {
     private final ErrorType type;
     private final List<String> detail;
 
-    public ErrorInfo() {
-        this.url = null;
-        this.type = null;
-        this.detail = null;
-    }
-
     public ErrorInfo(CharSequence url, ErrorType type, List<String> detail) {
         this.url = url.toString();
         this.type = type;

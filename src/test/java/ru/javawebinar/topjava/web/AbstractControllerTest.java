@@ -51,4 +51,10 @@ abstract public class AbstractControllerTest {
     public ResultActions perform(MockHttpServletRequestBuilder builder) throws Exception {
         return mockMvc.perform(builder);
     }
+
+    public String getErrorInfo(String url, String errorType, String message) {
+        return "{\"url\":\"" + url +
+                "\",\"type\":\"" + errorType +
+                "\",\"detail\":[\"" + message + "\"]}";
+    }
 }

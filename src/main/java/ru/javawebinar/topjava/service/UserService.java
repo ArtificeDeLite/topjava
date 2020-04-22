@@ -15,7 +15,6 @@ import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.repository.UserRepository;
 import ru.javawebinar.topjava.to.UserTo;
 import ru.javawebinar.topjava.util.UserUtil;
-import ru.javawebinar.topjava.util.exception.DataAlreadyExistException;
 
 import java.util.List;
 
@@ -39,9 +38,6 @@ public class UserService implements UserDetailsService {
     @Transactional
     public User create(User user) {
         Assert.notNull(user, "user must not be null");
-        if (hasEmail(user.getEmail())) {
-            throw new DataAlreadyExistException("User.AlreadyExists");
-        }
         return prepareAndSave(user);
     }
 
@@ -72,9 +68,6 @@ public class UserService implements UserDetailsService {
     @Transactional
     public void update(User user) {
         Assert.notNull(user, "user must not be null");
-        if (hasEmail(user.getEmail()) && !user.getId().equals(getByEmail(user.getEmail()).getId())) {
-            throw new DataAlreadyExistException("User.AlreadyExists");
-        }
 //      checkNotFoundWithId : check works only for JDBC, disabled
         prepareAndSave(user);
     }
@@ -82,9 +75,6 @@ public class UserService implements UserDetailsService {
     @CacheEvict(value = "users", allEntries = true)
     @Transactional
     public void update(UserTo userTo) {
-        if (hasEmail(userTo.getEmail()) && !userTo.getId().equals(getByEmail(userTo.getEmail()).getId())) {
-            throw new DataAlreadyExistException("User.AlreadyExists");
-        }
         User user = get(userTo.id());
         prepareAndSave(UserUtil.updateFromTo(user, userTo));   // !! need only for JDBC implementation
     }

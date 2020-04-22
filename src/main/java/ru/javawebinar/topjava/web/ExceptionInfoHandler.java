@@ -21,6 +21,7 @@ import ru.javawebinar.topjava.util.ValidationUtil;
 import ru.javawebinar.topjava.util.exception.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolationException;
 
 import java.util.List;
 import java.util.Locale;
@@ -49,7 +50,15 @@ public class ExceptionInfoHandler {
 
     @ResponseStatus(value = HttpStatus.CONFLICT)  // 409
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ErrorInfo conflict(HttpServletRequest req, DataIntegrityViolationException e) {
+    public ErrorInfo conflict(HttpServletRequest req, DataIntegrityViolationException e, Locale locale) {
+        if (ValidationUtil.getRootCause(e).toString().contains("meals_unique_user_datetime_idx")) {
+            String errorMessage = messageSource.getMessage("Meal.AlreadyExists", null, locale);
+            return new ErrorInfo(req.getRequestURL(), VALIDATION_ERROR, List.of(errorMessage));
+        }
+        if (ValidationUtil.getRootCause(e).toString().contains("users_unique_email_idx")) {
+            String errorMessage = messageSource.getMessage("User.AlreadyExists", null, locale);
+            return new ErrorInfo(req.getRequestURL(), VALIDATION_ERROR, List.of(errorMessage));
+        }
         return logAndGetErrorInfo(req, e, true, DATA_ERROR);
     }
 
@@ -63,19 +72,15 @@ public class ExceptionInfoHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)  // 422
     public ErrorInfo handleMethodArgumentNotValidException(HttpServletRequest req, Exception e) {
-/*        List<String> errorDescription = ((MethodArgumentNotValidException) e).getBindingResult().getFieldErrors().stream()
-                .map(fe -> String.format("[%s] %s", fe.getField(), fe.getDefaultMessage()))
-                .collect(Collectors.toList());*/
-
         List<String> errorDetails = getErrorDetails(((MethodArgumentNotValidException) e).getBindingResult());
-        return new ErrorInfo(req.getRequestURL(), VALIDATION_ERROR, errorDetails);
+        return logAndGetErrorInfo(req, e, false, VALIDATION_ERROR, errorDetails);
     }
 
-    @ExceptionHandler(DataAlreadyExistException.class)
+    @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)  // 422
-    public ErrorInfo handleDataAlreadyExistException(HttpServletRequest req, Exception e, Locale locale) {
+    public ErrorInfo handleConstraintViolationException(HttpServletRequest req, Exception e, Locale locale) {
         String errorMessage = messageSource.getMessage(e.getMessage(), null, locale);
-        return new ErrorInfo(req.getRequestURL(), VALIDATION_ERROR, List.of(errorMessage));
+        return logAndGetErrorInfo(req, e, false, VALIDATION_ERROR, List.of(errorMessage));
     }
 
 
@@ -83,8 +88,7 @@ public class ExceptionInfoHandler {
     @ResponseStatus(value = HttpStatus.UNPROCESSABLE_ENTITY)  // 422
     public ErrorInfo handleBindException(HttpServletRequest req, Exception e) {
         List<String> errorDetails = getErrorDetails(((BindException) e).getBindingResult());
-
-        return new ErrorInfo(req.getRequestURL(), VALIDATION_ERROR, errorDetails);
+        return logAndGetErrorInfo(req, e, false, VALIDATION_ERROR, errorDetails);
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -94,14 +98,22 @@ public class ExceptionInfoHandler {
     }
 
     //    https://stackoverflow.com/questions/538870/should-private-helper-methods-be-static-if-they-can-be-static
-    private static ErrorInfo logAndGetErrorInfo(HttpServletRequest req, Exception e, boolean logException, ErrorType errorType) {
+    private static ErrorInfo logAndGetErrorInfo(HttpServletRequest req, Exception e, boolean logException, ErrorType errorType, List<String> errorMessage) {
         Throwable rootCause = ValidationUtil.getRootCause(e);
         if (logException) {
             log.error(errorType + " at request " + req.getRequestURL(), rootCause);
         } else {
             log.warn("{} at request  {}: {}", errorType, req.getRequestURL(), rootCause.toString());
         }
-        return new ErrorInfo(req.getRequestURL(), errorType, List.of(e.getMessage()));
+        if (errorMessage == null) {
+            return new ErrorInfo(req.getRequestURL(), errorType, List.of(e.getMessage()));
+        } else {
+            return new ErrorInfo(req.getRequestURL(), errorType, errorMessage);
+        }
+    }
+
+    private static ErrorInfo logAndGetErrorInfo(HttpServletRequest req, Exception e, boolean logException, ErrorType errorType) {
+        return logAndGetErrorInfo(req, e, logException, errorType, null);
     }
 
     private List<String> getErrorDetails(BindingResult errors) {

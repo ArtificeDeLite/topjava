@@ -6,17 +6,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import ru.javawebinar.topjava.MealTestData;
-import ru.javawebinar.topjava.TestMatcher;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.service.MealService;
-import ru.javawebinar.topjava.util.exception.ErrorInfo;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 import ru.javawebinar.topjava.web.AbstractControllerTest;
 import ru.javawebinar.topjava.web.json.JsonUtil;
 
-import java.util.List;
-
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -133,23 +132,23 @@ class MealRestControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.NEVER)
     void createInvalid() throws Exception {
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR, List.of("[dateTime] must not be null"));
-        TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class, "detail");
+        String errorInfo = getErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR.toString(), "[dateTime] must not be null");
 
         Meal newMeal = new Meal(null, "description", 123);
-        ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL)
+        perform(MockMvcRequestBuilders.post(REST_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(JsonUtil.writeValue(newMeal))
                 .with(userHttpBasic(USER)))
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(matcher.contentJson(info));
+                .andExpect((a) -> assertThat(a.getResponse().getContentAsString()).isEqualTo(errorInfo));
     }
 
     @Test
+    @Transactional(propagation = Propagation.NEVER)
     void updateInvalid() throws Exception {
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL + MEAL1_ID, VALIDATION_ERROR, List.of("[description] must not be blank"));
-        TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class);
+        String errorInfo = getErrorInfo("http://localhost" + REST_URL + MEAL1_ID, VALIDATION_ERROR.toString(), "[description] must not be blank");
 
         Meal updated = MealTestData.getUpdated();
         updated.setDescription(null);
@@ -157,34 +156,35 @@ class MealRestControllerTest extends AbstractControllerTest {
                 .content(JsonUtil.writeValue(updated))
                 .with(userHttpBasic(USER)))
                 .andExpect(status().isUnprocessableEntity())
-                .andExpect(matcher.contentJson(info));
+                .andExpect((a) -> assertThat(a.getResponse().getContentAsString()).isEqualTo(errorInfo));
     }
 
     @Test
+    @Transactional(propagation = Propagation.NEVER)
     void updateExistDate() throws Exception {
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL + MEAL1_ID, VALIDATION_ERROR, List.of("Meal with this date and time already exists"));
-        TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class);
+        String errorInfo = getErrorInfo("http://localhost" + REST_URL + MEAL1_ID, VALIDATION_ERROR.toString(), "Meal with this date and time already exists");
 
         Meal updated = MealTestData.getUpdated();
         updated.setDateTime((MEAL2.getDateTime()));
         perform(MockMvcRequestBuilders.put(REST_URL + MEAL1_ID).contentType(MediaType.APPLICATION_JSON)
                 .content(JsonUtil.writeValue(updated))
                 .with(userHttpBasic(USER)))
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(matcher.contentJson(info));
+                .andExpect(status().isConflict())
+                .andExpect((a) -> assertThat(a.getResponse().getContentAsString()).isEqualTo(errorInfo));
     }
 
     @Test
+    @Transactional(propagation = Propagation.NEVER)
     void createExistDate() throws Exception {
-        ErrorInfo info = new ErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR, List.of("Meal with this date and time already exists"));
-        TestMatcher<ErrorInfo> matcher = TestMatcher.usingFieldsComparator(ErrorInfo.class, "detail");
+
+        String errorInfo = getErrorInfo("http://localhost" + REST_URL, VALIDATION_ERROR.toString(), "Meal with this date and time already exists");
 
         Meal newMeal = new Meal(MEAL2.getDateTime(), "description", 123);
-        ResultActions action = perform(MockMvcRequestBuilders.post(REST_URL)
+        perform(MockMvcRequestBuilders.post(REST_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(JsonUtil.writeValue(newMeal))
                 .with(userHttpBasic(USER)))
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(matcher.contentJson(info));
+                .andExpect(status().isConflict())
+                .andExpect((a) -> assertThat(a.getResponse().getContentAsString()).isEqualTo(errorInfo));
     }
 }
